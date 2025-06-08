@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню кавʼярні</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+            background: #f5f3f0;
+        }
+        .filters {
+            margin-bottom: 20px;
+        }
+        .filters input, .filters select, .filters button {
+            padding: 8px 12px;
+            margin-right: 10px;
+        }
+        .item {
+            background: #fff;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .active-filters {
+            margin: 10px 0;
+        }
+        .active-filters span {
+            display: inline-block;
+            background: #e0f7e0;
+            padding: 4px 8px;
+            margin-right: 5px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Меню кавʼярні</h2>
+
+<div class="filters">
+    <input type="text" id="search" placeholder="Пошук по меню...">
+    <select id="categoryFilter">
+        <option value="">Всі категорії</option>
+        <option value="Напій">Напої</option>
+        <option value="Десерт">Десерти</option>
+    </select>
+    <select id="sortBy">
+        <option value="name">За назвою</option>
+        <option value="price">За ціною</option>
+    </select>
+    <button id="resetBtn">Скинути</button>
+</div>
+
+<div class="active-filters" id="activeFilters"></div>
+
+<div id="items-container"></div>
+
+<script>
+    class CafeMenu {
+        constructor(data) {
+            this.data = data;
+            this.filteredData = [...data];
+            this.init();
+        }
+
+        init() {
+            this.searchInput = document.getElementById('search');
+            this.categoryFilter = document.getElementById('categoryFilter');
+            this.sortSelect = document.getElementById('sortBy');
+            this.resetButton = document.getElementById('resetBtn');
+            this.itemsContainer = document.getElementById('items-container');
+            this.activeFiltersContainer = document.getElementById('activeFilters');
+
+            this.searchInput.addEventListener('input', () => this.applyFilters());
+            this.categoryFilter.addEventListener('change', () => this.applyFilters());
+            this.sortSelect.addEventListener('change', () => this.applyFilters());
+            this.resetButton.addEventListener('click', () => this.resetFilters());
+
+            this.renderItems();
+        }
+
+        applyFilters() {
+            const searchText = this.searchInput.value.toLowerCase();
+            const categoryValue = this.categoryFilter.value;
+            const sortValue = this.sortSelect.value;
+
+            this.filteredData = this.data.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchText);
+                const matchesCategory = categoryValue ? item.category === categoryValue : true;
+                return matchesSearch && matchesCategory;
+            });
+
+            this.sortData(sortValue);
+            this.renderItems();
+            this.updateActiveFilters();
+        }
+
+        sortData(criterion) {
+            if (criterion === 'name') {
+                this.filteredData.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (criterion === 'price') {
+                this.filteredData.sort((a, b) => a.price - b.price);
+            }
+        }
+
+        renderItems() {
+            this.itemsContainer.innerHTML = '';
+            if (this.filteredData.length === 0) {
+                this.itemsContainer.innerHTML = '<p>Нічого не знайдено.</p>';
+                return;
+            }
+            this.filteredData.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `<strong>${item.name}</strong> — ${item.category} — ${item.price} грн.`;
+                this.itemsContainer.appendChild(div);
+            });
+        }
+
+        updateActiveFilters() {
+            const activeFilters = [];
+            if (this.searchInput.value) activeFilters.push(`Пошук: "${this.searchInput.value}"`);
+            if (this.categoryFilter.value) activeFilters.push(`Категорія: ${this.categoryFilter.value}`);
+            this.activeFiltersContainer.innerHTML = activeFilters.map(f => `<span>${f}</span>`).join('');
+        }
+
+        resetFilters() {
+            this.searchInput.value = '';
+            this.categoryFilter.value = '';
+            this.sortSelect.value = 'name';
+            this.applyFilters();
+        }
+    }
+
+    const menuData = [
+        { name: 'Лате', category: 'Напій', price: 60 },
+        { name: 'Капучино', category: 'Напій', price: 65 },
+        { name: 'Американо', category: 'Напій', price: 50 },
+        { name: 'Чізкейк', category: 'Десерт', price: 80 },
+        { name: 'Наполеон', category: 'Десерт', price: 70 },
+        { name: 'Флет Уайт', category: 'Напій', price: 75 },
+        { name: 'Шоколадний торт', category: 'Десерт', price: 90 },
+    ];
+
+    const cafeMenu = new CafeMenu(menuData);
+</script>
+
+</body>
+</html>
